@@ -1,0 +1,377 @@
+<!DOCTYPE html>
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>编辑学生 - 学生信息管理系统</title>
+    <link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/twitter-bootstrap/5.3.0/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body {
+            background-color: #f5f7fa;
+            min-height: 100vh;
+        }
+        .main-content {
+            max-width: 1000px;
+            margin: 30px auto;
+            padding: 0 20px;
+        }
+        .edit-container {
+            background: white;
+            border-radius: 8px;
+            padding: 30px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        }
+        .page-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid #eee;
+        }
+        .page-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: #333;
+            margin: 0;
+        }
+        .form-section {
+            margin-bottom: 30px;
+        }
+        .section-title {
+            font-size: 1.1rem;
+            color: #555;
+            font-weight: 500;
+            margin-bottom: 20px;
+            padding-left: 10px;
+            border-left: 4px solid #3498db;
+        }
+        .required-label::after {
+            content: " *";
+            color: #e74c3c;
+        }
+        .form-control, .form-select {
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            padding: 10px 12px;
+        }
+        .form-control:focus, .form-select:focus {
+            border-color: #3498db;
+            box-shadow: 0 0 0 0.2rem rgba(52, 152, 219, 0.25);
+        }
+        .btn-custom {
+            padding: 8px 20px;
+            border-radius: 4px;
+            font-weight: 500;
+        }
+        .form-text {
+            color: #6c757d;
+            font-size: 0.875rem;
+            margin-top: 5px;
+        }
+    </style>
+</head>
+<body>
+<!-- 导航栏 -->
+<nav class="navbar navbar-expand-lg navbar-dark" style="background-color: #2c3e50;">
+    <div class="container-fluid">
+        <a class="navbar-brand fw-bold" th:href="@{/}">
+            <i class="fas fa-graduation-cap me-2"></i>
+            学生信息管理系统
+        </a>
+
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav me-auto">
+                <li class="nav-item">
+                    <a class="nav-link" th:href="@{/}" th:classappend="${#httpServletRequest.requestURI == '/'} ? 'active'">
+                        <i class="fas fa-home me-1"></i> 首页
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link active" th:href="@{/student/list}" th:classappend="${#strings.contains(#httpServletRequest.requestURI, 'student')} ? 'active'">
+                        <i class="fas fa-users me-1"></i> 学生管理
+                    </a>
+                </li>
+            </ul>
+
+            <ul class="navbar-nav">
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
+                        <i class="fas fa-user-circle me-1"></i>
+                        <span th:text="${#authentication?.name} ?: '用户'"></span>
+                    </a>
+                    <ul class="dropdown-menu dropdown-menu-end">
+                        <li><a class="dropdown-item" href="#"><i class="fas fa-user me-2"></i>个人中心</a></li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li><a class="dropdown-item text-danger" th:href="@{/logout}"><i class="fas fa-sign-out-alt me-2"></i>退出登录</a></li>
+                    </ul>
+                </li>
+            </ul>
+        </div>
+    </div>
+</nav>
+
+<div class="main-content">
+    <!-- 空值检查 -->
+    <div th:if="${student == null}" class="alert alert-warning">
+        <i class="fas fa-exclamation-triangle me-2"></i>
+        学生信息不存在或已被删除！
+        <a th:href="@{/student/list}" class="alert-link ms-2">返回学生列表</a>
+    </div>
+
+    <!-- 主编辑表单 -->
+    <div th:if="${student != null}" class="edit-container">
+        <!-- 页面标题 -->
+        <div class="page-header">
+            <h1 class="page-title">编辑学生</h1>
+            <a th:href="@{/student/list}" class="btn btn-outline-secondary btn-custom">
+                <i class="fas fa-arrow-left me-2"></i>返回列表
+            </a>
+        </div>
+
+        <!-- 学生ID提示 -->
+        <div class="alert alert-info mb-4">
+            <i class="fas fa-info-circle me-2"></i>
+            正在编辑学生ID: <strong th:text="${student?.id}">4</strong>
+        </div>
+
+        <!-- 表单开始 -->
+        <form th:action="@{/student/edit}" method="post" id="editForm">
+            <input type="hidden" name="id" th:value="${student?.id}">
+
+            <!-- 基本个人信息 -->
+            <div class="form-section">
+                <h5 class="section-title">基本个人信息</h5>
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <label for="studentNo" class="form-label fw-medium required-label">学号</label>
+                        <input type="text" class="form-control" id="studentNo" name="studentNo"
+                               th:value="${student?.studentNo} ?: ''" required placeholder="请输入学号">
+                        <div class="form-text">学生的唯一学号标识</div>
+                    </div>
+                    <div class="col-md-6">
+                        <label for="studentName" class="form-label fw-medium required-label">姓名</label>
+                        <input type="text" class="form-control" id="studentName" name="studentName"
+                               th:value="${student?.studentName} ?: ''" required placeholder="请输入学生姓名">
+                        <div class="form-text">请输入学生的真实姓名</div>
+                    </div>
+                    <div class="col-md-6">
+                        <label for="gender" class="form-label fw-medium required-label">性别</label>
+                        <select class="form-select" id="gender" name="gender" required>
+                            <option value="">请选择性别</option>
+                            <option th:value="0" th:selected="${student?.gender == 0}">男</option>
+                            <option th:value="1" th:selected="${student?.gender == 1}">女</option>
+                        </select>
+                    </div>
+                    <div class="col-md-6">
+                        <label for="birthday" class="form-label fw-medium">出生日期</label>
+                        <input type="date" class="form-control" id="birthday" name="birthday"
+                               th:value="${#dates?.format(student?.birthday, 'yyyy-MM-dd')}">
+                    </div>
+                </div>
+            </div>
+
+            <!-- 联系方式 -->
+            <div class="form-section">
+                <h5 class="section-title">联系方式</h5>
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <label for="idCard" class="form-label fw-medium">身份证号</label>
+                        <input type="text" class="form-control" id="idCard" name="idCard"
+                               th:value="${student?.idCard} ?: ''" placeholder="请输入18位身份证号">
+                    </div>
+                    <div class="col-md-6">
+                        <label for="phone" class="form-label fw-medium required-label">手机号</label>
+                        <input type="tel" class="form-control" id="phone" name="phone"
+                               th:value="${student?.phone} ?: ''" required placeholder="请输入11位手机号">
+                    </div>
+                    <div class="col-md-6">
+                        <label for="email" class="form-label fw-medium">邮箱</label>
+                        <input type="email" class="form-control" id="email" name="email"
+                               th:value="${student?.email} ?: ''" placeholder="例如：example@qq.com">
+                    </div>
+                    <div class="col-md-6">
+                        <label for="address" class="form-label fw-medium">家庭住址</label>
+                        <input type="text" class="form-control" id="address" name="address"
+                               th:value="${student?.address} ?: ''" placeholder="请输入家庭住址">
+                    </div>
+                </div>
+            </div>
+
+            <!-- 学院信息 -->
+            <div class="form-section">
+                <h5 class="section-title">学院信息</h5>
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <label for="college" class="form-label fw-medium required-label">学院</label>
+                        <select class="form-select" id="college" name="college" required>
+                            <option value="">请选择学院</option>
+                            <option th:value="计算机学院" th:selected="${student?.college == '计算机学院'}">计算机学院</option>
+                            <option th:value="信息学院" th:selected="${student?.college == '信息学院'}">信息学院</option>
+                            <option th:value="管理学院" th:selected="${student?.college == '管理学院'}">管理学院</option>
+                            <option th:value="经济学院" th:selected="${student?.college == '经济学院'}">经济学院</option>
+                            <option th:value="外国语学院" th:selected="${student?.college == '外国语学院'}">外国语学院</option>
+                        </select>
+                    </div>
+                    <div class="col-md-6">
+                        <label for="major" class="form-label fw-medium required-label">专业</label>
+                        <input type="text" class="form-control" id="major" name="major"
+                               th:value="${student?.major} ?: ''" required placeholder="请输入专业名称">
+                    </div>
+                    <div class="col-md-6">
+                        <label for="className" class="form-label fw-medium required-label">班级</label>
+                        <input type="text" class="form-control" id="className" name="className"
+                               th:value="${student?.className} ?: ''" required placeholder="例如：软件2201班">
+                    </div>
+                    <div class="col-md-6">
+                        <label for="enrollmentYear" class="form-label fw-medium required-label">入学年份</label>
+                        <input type="text" class="form-control" id="enrollmentYear" name="enrollmentYear"
+                               th:value="${student?.enrollmentYear} ?: ''" required maxlength="4" placeholder="例如：2022">
+                    </div>
+                </div>
+            </div>
+
+            <!-- 状态与紧急联系人 -->
+            <div class="form-section">
+                <h5 class="section-title">其他信息</h5>
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <label for="status" class="form-label fw-medium required-label">状态</label>
+                        <select class="form-select" id="status" name="status" required>
+                            <option value="">请选择状态</option>
+                            <option th:value="1" th:selected="${student?.status == 1}">在读</option>
+                            <option th:value="2" th:selected="${student?.status == 2}">休学</option>
+                            <option th:value="3" th:selected="${student?.status == 3}">毕业</option>
+                        </select>
+                    </div>
+                    <div class="col-md-6">
+                        <label for="emergencyContact" class="form-label fw-medium">紧急联系人</label>
+                        <input type="text" class="form-control" id="emergencyContact" name="emergencyContact"
+                               th:value="${student?.emergencyContact} ?: ''" placeholder="请输入紧急联系人姓名">
+                    </div>
+                    <div class="col-md-6">
+                        <label for="emergencyPhone" class="form-label fw-medium">紧急联系电话</label>
+                        <input type="tel" class="form-control" id="emergencyPhone" name="emergencyPhone"
+                               th:value="${student?.emergencyPhone} ?: ''" placeholder="请输入紧急联系电话">
+                    </div>
+                </div>
+            </div>
+
+            <!-- 操作按钮 -->
+            <div class="row mt-5 pt-4 border-top">
+                <div class="col-12 d-flex justify-content-end gap-3">
+                    <button type="button" class="btn btn-outline-secondary btn-custom" onclick="resetForm()">
+                        <i class="fas fa-redo me-2"></i>重置
+                    </button>
+                    <a th:href="@{/student/list}" class="btn btn-outline-secondary btn-custom">
+                        <i class="fas fa-times me-2"></i>取消
+                    </a>
+                    <button type="submit" class="btn btn-primary btn-custom px-4">
+                        <i class="fas fa-save me-2"></i>保存修改
+                    </button>
+                </div>
+            </div>
+        </form>
+    </div>
+
+    <!-- 消息提示 -->
+    <div th:if="${(#strings.isEmpty(success) ? false : true) or (#strings.isEmpty(error) ? false : true)}" class="mt-4">
+        <div th:if="${success}" class="alert alert-success alert-dismissible fade show" role="alert">
+            <i class="fas fa-check-circle me-2"></i>
+            <span th:text="${success}"></span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+        <div th:if="${error}" class="alert alert-danger alert-dismissible fade show" role="alert">
+            <i class="fas fa-exclamation-circle me-2"></i>
+            <span th:text="${error}"></span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.bootcdn.net/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.bootcdn.net/ajax/libs/jquery/3.7.0/jquery.min.js"></script>
+<script>
+    // 自动关闭提示框
+    $(document).ready(function() {
+        setTimeout(function() {
+            $('.alert').alert('close');
+        }, 5000);
+    });
+
+    // 表单验证
+    $(function() {
+        // 手机号验证
+        $('#phone').on('blur', function() {
+            var phone = $(this).val();
+            var phoneRegex = /^1[3-9]\d{9}$/;
+            if (phone && !phoneRegex.test(phone)) {
+                showError('phone', '请输入正确的11位手机号');
+            } else {
+                clearError('phone');
+            }
+        });
+
+        // 身份证号验证
+        $('#idCard').on('blur', function() {
+            var idCard = $(this).val();
+            if (idCard) {
+                var idCardRegex = /(^\d{15}$)|(^\d{18}$)|(^\d{17}(\d|X|x)$)/;
+                if (!idCardRegex.test(idCard)) {
+                    showError('idCard', '请输入正确的身份证号');
+                } else {
+                    clearError('idCard');
+                }
+            }
+        });
+
+        // 提交表单验证
+        $('#editForm').on('submit', function(e) {
+            var isValid = true;
+
+            // 检查必填项
+            $('[required]').each(function() {
+                if (!$(this).val().trim()) {
+                    showError($(this).attr('id'), '此字段为必填项');
+                    isValid = false;
+                }
+            });
+
+            if (!isValid) {
+                e.preventDefault();
+                // 滚动到第一个错误位置
+                $('.is-invalid').first().focus();
+            }
+        });
+    });
+
+    function showError(fieldId, message) {
+        var field = $('#' + fieldId);
+        field.addClass('is-invalid');
+        var feedback = field.siblings('.invalid-feedback');
+        if (feedback.length === 0) {
+            field.after('<div class="invalid-feedback">' + message + '</div>');
+        } else {
+            feedback.text(message);
+        }
+    }
+
+    function clearError(fieldId) {
+        var field = $('#' + fieldId);
+        field.removeClass('is-invalid');
+        field.siblings('.invalid-feedback').remove();
+    }
+
+    function resetForm() {
+        if (confirm('确定要重置表单吗？所有修改将丢失。')) {
+            document.getElementById('editForm').reset();
+        }
+    }
+</script>
+</body>
+</html>

@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>学生信息管理系统</title>
+    <link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/twitter-bootstrap/5.3.0/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        /* 紧凑布局 */
+        .navbar {
+            padding: 8px 0;
+        }
+
+        .sidebar {
+            background: linear-gradient(180deg, #1e3c72 0%, #2a5298 100%);
+            min-height: calc(100vh - 56px);
+            color: white;
+            padding: 15px 0;
+        }
+
+        .sidebar .nav-link {
+            color: rgba(255, 255, 255, 0.8);
+            padding: 10px 20px;
+            border-radius: 0;
+            border-left: 3px solid transparent;
+            transition: all 0.2s;
+        }
+
+        .sidebar .nav-link:hover {
+            color: white;
+            background: rgba(255, 255, 255, 0.1);
+            border-left-color: #4CAF50;
+        }
+
+        .sidebar .nav-link.active {
+            color: white;
+            background: rgba(255, 255, 255, 0.15);
+            border-left-color: #4CAF50;
+        }
+
+        .sidebar .nav-link i {
+            width: 20px;
+            text-align: center;
+            margin-right: 10px;
+        }
+
+        .sidebar-heading {
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            padding: 0 20px;
+            margin: 20px 0 10px 0;
+        }
+
+        .main-content {
+            padding: 15px 20px;
+            background: #f8f9fa;
+        }
+
+        .stat-card {
+            background: white;
+            border-radius: 8px;
+            padding: 15px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            margin-bottom: 15px;
+            border-left: 4px solid #007bff;
+        }
+
+        .stat-card h3 {
+            font-size: 24px;
+            font-weight: bold;
+            margin: 5px 0;
+        }
+
+        .stat-card p {
+            color: #6c757d;
+            margin: 0;
+        }
+
+        .card {
+            margin-bottom: 15px;
+        }
+
+        .card-header {
+            padding: 10px 15px;
+            background: white;
+            border-bottom: 1px solid #eee;
+        }
+
+        .card-body {
+            padding: 15px;
+        }
+    </style>
+</head>
+<body>
+<!-- 顶部导航栏 -->
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+    <div class="container-fluid">
+        <a class="navbar-brand" th:href="@{/}">
+            <i class="fas fa-graduation-cap me-2"></i>
+            学生信息管理系统
+        </a>
+        <div class="d-flex align-items-center">
+                <span class="navbar-text me-3 text-white">
+                    <i class="fas fa-user-circle me-1"></i>
+                    <span th:text="${user?.realName ?: '用户'}">管理员</span>
+                </span>
+            <a th:href="@{/logout}" class="btn btn-outline-light btn-sm">
+                <i class="fas fa-sign-out-alt"></i> 退出
+            </a>
+        </div>
+    </div>
+</nav>
+
+<div class="container-fluid">
+    <div class="row">
+        <!-- 侧边栏 -->
+        <nav class="col-md-2 d-md-block sidebar">
+            <div class="position-sticky">
+                <ul class="nav flex-column">
+                    <li class="nav-item">
+                        <a class="nav-link active" th:href="@{/}">
+                            <i class="fas fa-home me-2"></i> 首页
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" th:href="@{/student/list}">
+                            <i class="fas fa-users me-2"></i> 学生管理
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#">
+                            <i class="fas fa-book me-2"></i> 课程管理
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#">
+                            <i class="fas fa-chart-bar me-2"></i> 成绩管理
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#">
+                            <i class="fas fa-calendar-alt me-2"></i> 请假管理
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#">
+                            <i class="fas fa-bullhorn me-2"></i> 公告管理
+                        </a>
+                    </li>
+                </ul>
+
+                <h6 class="sidebar-heading mt-4">系统设置</h6>
+                <ul class="nav flex-column mb-2">
+                    <li class="nav-item">
+                        <a class="nav-link" href="#">
+                            <i class="fas fa-cog me-2"></i> 系统配置
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#">
+                            <i class="fas fa-user-shield me-2"></i> 权限管理
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#">
+                            <i class="fas fa-history me-2"></i> 操作日志
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </nav>
+
+        <!-- 主内容区 -->
+        <main class="col-md-10 main-content">
+            <!-- 欢迎信息 -->
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h4>欢迎回来，<span th:text="${user?.realName}" class="text-primary">管理员</span>！</h4>
+                <span class="badge bg-primary" th:text="${user?.role == 'admin' ? '管理员' : '学生'}">角色</span>
+            </div>
+
+            <!-- 统计卡片 -->
+            <div class="row">
+                <div class="col-md-3 col-sm-6">
+                    <div class="stat-card border-start-primary">
+                        <div class="d-flex align-items-center">
+                            <div class="bg-primary bg-opacity-10 p-2 rounded me-3">
+                                <i class="fas fa-users text-primary fa-lg"></i>
+                            </div>
+                            <div>
+                                <h3 id="studentCount">0</h3>
+                                <p>学生总数</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3 col-sm-6">
+                    <div class="stat-card border-start-success">
+                        <div class="d-flex align-items-center">
+                            <div class="bg-success bg-opacity-10 p-2 rounded me-3">
+                                <i class="fas fa-book text-success fa-lg"></i>
+                            </div>
+                            <div>
+                                <h3 id="courseCount">0</h3>
+                                <p>课程总数</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3 col-sm-6">
+                    <div class="stat-card border-start-warning">
+                        <div class="d-flex align-items-center">
+                            <div class="bg-warning bg-opacity-10 p-2 rounded me-3">
+                                <i class="fas fa-chart-line text-warning fa-lg"></i>
+                            </div>
+                            <div>
+                                <h3 id="avgScore">0</h3>
+                                <p>平均成绩</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3 col-sm-6">
+                    <div class="stat-card border-start-danger">
+                        <div class="d-flex align-items-center">
+                            <div class="bg-danger bg-opacity-10 p-2 rounded me-3">
+                                <i class="fas fa-calendar-day text-danger fa-lg"></i>
+                            </div>
+                            <div>
+                                <h3 id="leaveCount">0</h3>
+                                <p>今日请假</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 快捷操作 -->
+            <div class="row mt-4">
+                <div class="col-12">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5 class="card-title mb-0">快捷操作</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="row g-3">
+                                <div class="col-md-3 col-6">
+                                    <a th:href="@{/student/add}" class="btn btn-outline-primary w-100">
+                                        <i class="fas fa-user-plus me-2"></i>添加学生
+                                    </a>
+                                </div>
+                                <div class="col-md-3 col-6">
+                                    <a href="#" class="btn btn-outline-success w-100">
+                                        <i class="fas fa-book-medical me-2"></i>添加课程
+                                    </a>
+                                </div>
+                                <div class="col-md-3 col-6">
+                                    <a href="#" class="btn btn-outline-warning w-100">
+                                        <i class="fas fa-edit me-2"></i>录入成绩
+                                    </a>
+                                </div>
+                                <div class="col-md-3 col-6">
+                                    <a href="#" class="btn btn-outline-info w-100">
+                                        <i class="fas fa-bullhorn me-2"></i>发布公告
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 系统信息 -->
+            <div class="row mt-4">
+                <div class="col-12">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5 class="card-title mb-0">系统信息</h5>
+                        </div>
+                        <div class="card-body">
+                            <p>欢迎使用学生信息管理系统！本系统基于Spring Boot开发，包含完整的学生管理功能。</p>
+                            <p><strong>技术栈：</strong> Spring Boot 2.7 + MyBatis-Plus + MySQL 8.0 + Redis 7.0 + Sa-Token + Thymeleaf</p>
+                            <p><strong>主要功能：</strong></p>
+                            <ul>
+                                <li>学生信息管理（增删改查）</li>
+                                <li>课程与成绩管理</li>
+                                <li>在线请假审批</li>
+                                <li>公告发布</li>
+                                <li>数据统计与分析</li>
+                            </ul>
+                            <p class="mb-0"><small class="text-muted">当前版本：v1.0.0 | 最后更新：2024年1月</small></p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+</div>
+
+<script src="https://cdn.bootcdn.net/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.bootcdn.net/ajax/libs/jquery/3.7.0/jquery.min.js"></script>
+<script>
+    $(function() {
+        // 模拟统计数据
+        $('#studentCount').text('128');
+        $('#courseCount').text('24');
+        $('#avgScore').text('85.6');
+        $('#leaveCount').text('3');
+    });
+</script>
+</body>
+</html>
