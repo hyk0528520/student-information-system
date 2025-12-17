@@ -1,4 +1,4 @@
-<img width="1866" height="893" alt="image" src="https://github.com/user-attachments/assets/bab19f30-ef6f-42e8-8acb-9fb66a9e83c2" /># 学生信息管理系统 (Student Information Management System)
+# 学生信息管理系统 (Student Information Management System)
 
 > 一个基于 Spring Boot 的 B/S 架构学生信息管理后台系统。
 
@@ -30,3 +30,4 @@
 - 前端界面美化（考虑 Vue/React）
 - 添加 Docker 部署脚本
 - 接入邮件通知模块
+
